@@ -1,11 +1,22 @@
 import streamlit as st
 from main import Chatbot
 from agents.news_agent import NewsAgent
+from agents.weather_agent import WeatherAgent
 from utils.get_rss import fetch_latest_paphos_news
 from langchain_community.chat_models.gigachat import GigaChat
 import os
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
+
+def countdown_timer():
+    target_date = datetime(2024, 11, 15, 0, 0, 0)
+    now = datetime.now()
+    countdown = target_date - now
+    days, seconds = countdown.days, countdown.seconds
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+    return f"{days}d {hours}h {minutes}m {seconds}s"
 
 def main():
     st.set_page_config(page_title="Paphos City Information Bot", page_icon="🌴", initial_sidebar_state="collapsed")
@@ -13,20 +24,17 @@ def main():
     st.title("🌴 Paphos City Information Bot")
 
     # Retrieve API keys from Streamlit secrets
-    giga_key = st.secrets.get("GIGACHAT_API_KEY", "")
-    openweather_key = st.secrets.get("OPENWEATHER_API_KEY", "")
+    giga_key = st.secrets.get("GIGA_API_KEY")
+    openweather_key = st.secrets.get("OPENWEATHER_API_KEY")
 
     # Sidebar for optional user-provided API keys
-    with st.sidebar:
-        st.title("Configuration")
-        user_giga_key = st.text_input("Enter your GigaChat API Key (optional)", type="password")
-        user_openweather_key = st.text_input("Enter your OpenWeather API Key (optional)", type="password")
+    st.sidebar.title("Configuration")
+    user_giga_key = st.sidebar.text_input("Enter your GigaChat API Key", type="password")
+    user_openweather_key = st.sidebar.text_input("Enter your OpenWeather API Key", type="password")
 
-    # Use user-provided keys if available
-    if user_giga_key:
-        giga_key = user_giga_key
-    if user_openweather_key:
-        openweather_key = user_openweather_key
+    # Use user-provided keys if available; otherwise, use secrets
+    giga_key = user_giga_key or giga_key
+    openweather_key = user_openweather_key or openweather_key
 
     if giga_key and openweather_key:
         os.environ['SB_AUTH_DATA'] = giga_key
@@ -93,20 +101,20 @@ def main():
         for spot in popular_spots:
             st.write(f"**{spot['name']}**: {spot['description']}")
 
+        # Display current weather
+        st.subheader("🌤️ Current Weather in Paphos")
+        weather_agent = WeatherAgent(giga)
+        weather_info = weather_agent.get_weather("Paphos")
+        st.write(weather_info)
+
+        # Display countdown to AI Paphos Summit
+        st.subheader("🕒 Countdown to AI Paphos Summit")
+        st.write(f"Time remaining: {countdown_timer()}")
+
     else:
         st.info("Please enter your API keys to start using the bot.")
 
-    # Countdown to AI Paphos Summit
-    summit_date = datetime(2024, 11, 15, 0, 0, 0)
-    now = datetime.now()
-    countdown = summit_date - now
-    days, seconds = countdown.days, countdown.seconds
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    seconds = seconds % 60
-    st.sidebar.markdown(f"🕒 Countdown to AI Paphos Summit: {days}d {hours}h {minutes}m {seconds}s")
-
-    # Credits
+    # Add colorful credits
     st.markdown(
         """
         <style>
@@ -115,8 +123,12 @@ def main():
                 bottom: 5px;
                 left: 5px;
                 font-size: 0.8em;
-                color: #6c757d;
+                color: #FFFFFF;
+                background-color: #0073e6;
+                padding: 5px;
+                border-radius: 5px;
                 font-family: 'Courier New', monospace;
+                opacity: 0.9;
             }
         </style>
         <div class="credits">Credits to Konstantin BALTSAT</div>
