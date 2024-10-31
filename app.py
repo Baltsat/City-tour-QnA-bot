@@ -4,34 +4,36 @@ import streamlit as st
 from main import Chatbot
 from agents.news_agent import NewsAgent
 from utils.get_rss import fetch_latest_paphos_news
-from langchain_community.chat_models.gigachat import GigaChat  # Import GigaChat
+from langchain_community.chat_models.gigachat import GigaChat
 import os
-import json  # Import json
+import json
+from datetime import datetime
 
 def main():
-    st.set_page_config(page_title="Paphos City Information Bot", page_icon="🌴")
+    # Configure the page layout with centered alignment to keep sidebar hidden by default
+    st.set_page_config(page_title="Paphos City Information Bot", page_icon="🌴", layout="centered")
 
     st.title("🌴 Paphos City Information Bot")
 
-    # Sidebar for API keys
-    st.sidebar.title("Configuration")
-    giga_key = st.sidebar.text_input("Enter your GigaChat API Key", type="password")
-    openweather_key = st.sidebar.text_input("Enter your OpenWeather API Key", type="password")
+    # Sidebar for optional API key entry, hidden by default
+    with st.sidebar:
+        st.title("Configuration")
+        user_giga_key = st.text_input("Enter your GigaChat API Key (optional)", type="password")
+        user_openweather_key = st.text_input("Enter your OpenWeather API Key (optional)", type="password")
+
+    # Load secrets or user-entered keys
+    giga_key = user_giga_key or st.secrets.get("giga_key")
+    openweather_key = user_openweather_key or st.secrets.get("openweather_key")
 
     if giga_key and openweather_key:
         os.environ['SB_AUTH_DATA'] = giga_key
         os.environ['OPENWEATHER_API_KEY'] = openweather_key
 
         # Initialize the chatbot
-        giga = GigaChat(
-            credentials=giga_key,
-            model="GigaChat",
-            timeout=30,
-            verify_ssl_certs=False
-        )
+        giga = GigaChat(credentials=giga_key, model="GigaChat", timeout=30, verify_ssl_certs=False)
         chatbot = Chatbot(giga)
 
-        # Display sample template requests
+        # Sample questions
         st.subheader("Sample Questions")
         sample_questions = [
             "What are the main attractions in Paphos?",
@@ -63,7 +65,7 @@ def main():
         for sender, message in st.session_state.chat_history:
             st.write(f"**{sender}:** {message}")
 
-        # Display latest news
+        # Latest news section
         st.subheader("📰 Latest News from Paphos")
         news_agent = NewsAgent()
         news = news_agent.handle("latest news")
@@ -83,8 +85,40 @@ def main():
         for spot in popular_spots:
             st.write(f"**{spot['name']}**: {spot['description']}")
 
+        # Countdown to AI Paphos Summit
+        st.subheader("⏳ Countdown to AI Paphos Summit")
+        summit_date = datetime(2024, 11, 15)
+        now = datetime.now()
+        if now < summit_date:
+            countdown = summit_date - now
+            days, seconds = countdown.days, countdown.seconds
+            hours = seconds // 3600
+            minutes = (seconds % 3600) // 60
+            seconds = seconds % 60
+            st.write(f"Time remaining: {days} days, {hours} hours, {minutes} minutes, {seconds} seconds")
+        else:
+            st.write("The AI Paphos Summit has started or concluded.")
+
     else:
         st.info("Please enter your API keys to start using the bot.")
+
+    # Adding credits to Konstantin BALTSAT in the bottom-right corner
+    st.markdown(
+        """
+        <style>
+            .credits {
+                position: fixed;
+                bottom: 5px;
+                right: 5px;
+                font-size: 0.8em;
+                color: #3c7009;
+                font-family: 'Courier New', monospace;
+            }
+        </style>
+        <div class="credits">Credits to Konstantin BALTSAT</div>
+        """,
+        unsafe_allow_html=True
+    )
 
 if __name__ == "__main__":
     main()
