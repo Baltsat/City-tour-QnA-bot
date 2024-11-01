@@ -4,6 +4,7 @@ pytest-cov==3.0.0
 requests
 langchain
 langchain_community
+langchain_core
 python-dotenv
 mock
 gigachain==0.2.6
