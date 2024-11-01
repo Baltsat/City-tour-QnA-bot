@@ -24,7 +24,7 @@ def main():
     st.title("🌴 Paphos City Information Bot")
 
     # Retrieve API keys from Streamlit secrets
-    giga_key = st.secrets.get("GIGA_API_KEY")
+    giga_key = st.secrets.get("SB_AUTH_DATA")
     openweather_key = st.secrets.get("OPENWEATHER_API_KEY")
 
     # Sidebar for optional user-provided API keys
@@ -35,6 +35,7 @@ def main():
     # Use user-provided keys if available; otherwise, use secrets
     giga_key = user_giga_key or giga_key
     openweather_key = user_openweather_key or openweather_key
+
 
     if giga_key and openweather_key:
         os.environ['SB_AUTH_DATA'] = giga_key
