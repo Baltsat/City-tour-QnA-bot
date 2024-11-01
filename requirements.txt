@@ -2,9 +2,10 @@ setuptools
 pytest==7.1.2
 pytest-cov==3.0.0
 requests
-langchain
-langchain_community
-langchain_core
+langchain==0.2.16
+langchain_community==0.2.16
+langchain_core==0.2.42
+langfuse==2.53.3
 python-dotenv
 mock
 gigachain==0.2.6
