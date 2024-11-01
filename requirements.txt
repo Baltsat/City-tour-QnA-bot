@@ -19,4 +19,4 @@ python-dotenv==1.0.1
 duckduckgo-search==6.2.4
 bs4
 feedparser
-streamlit
+streamlitwatchdog
